@@ -20,43 +20,57 @@ screen_height = main.winfo_screenheight()
 x = (screen_width // 2) - (win_width // 2)
 y = (screen_height // 2) - (win_height // 2)
 
+def shutdown(second: int) -> int:
+    if second < 0:
+        return -1
+    return os.system(f"shutdown -s -t {second}")
+    
+def abortShutdown() -> bool:
+    code: int = os.system("shutdown -a")
+    if code != 0:
+        return False
+    
+    return True
+
 def setShutdownTimer(hour: int, minute: int):
     second = (hour * 3600) + (minute * 60)
     if second <= 0:
-        confirm = messagebox.askyesno("0 minutes, 0 second", "คุณต้องการปิดเครื่องทันทีหรือไม่ ?")
+        confirm: bool = messagebox.askyesno("0 minutes, 0 second", "คุณต้องการปิดเครื่องทันทีหรือไม่ ?")
         if confirm:
-            rc = os.system(f"shutdown -s -t 5")
-            if rc != 0:
-                os.system("shutdown -a")
-                os.system(f"shutdown -s -t 5")
+            code = shutdown(5)
+            if code != 0:
+                answer = messagebox.askyesno("การตั้งเวลาปิดเครื่องทับซ้อน", "ตรวจพบว่ามีการตั้งเวลาปิดเครื่องอยู่แล้ว\nต้องการยกเลิกของเก่าและตั้งค่าใหม่หรือไม่?")
+                if not answer:
+                    return
+                
+                abortShutdown()
+                shutdown(5)
             messagebox.showinfo("ตั้งเวลาปิดเครื่อง", f"เครื่องกำลังจะปิดในอีก 5 วินาที")
             return
         else:
             return
         
     if second > 0:
-        rc = os.system(f"shutdown -s -t {second}")
+        rc: int = shutdown(second)
         if rc != 0:
             answer = messagebox.askyesno("การตั้งเวลาปิดเครื่องทับซ้อน", "ตรวจพบว่ามีการตั้งเวลาปิดเครื่องอยู่แล้ว\nต้องการยกเลิกของเก่าและตั้งค่าใหม่หรือไม่?")
             if not answer:
                 return
-            else:
-                os.system("shutdown -a")
-                os.system(f"shutdown -s -t {second}")
+        
+            abortShutdown()
+            shutdown(second)
                 
-        if hour <= 0 and minute > 0:
-            messagebox.showinfo("ตั้งเวลาปิดเครื่อง", f"ตั้งเวลาปิดเครื่องใน {second / 60:.0f} นาทีแล้ว")
-        else:
-            messagebox.showinfo("ตั้งเวลาปิดเครื่อง", f"ตั้งเวลาปิดเครื่องใน {hour} ชั่วโมง {minute} นาทีแล้ว")
+    if hour <= 0 and minute > 0:
+        messagebox.showinfo("ตั้งเวลาปิดเครื่อง", f"ตั้งเวลาปิดเครื่องใน {second / 60:.0f} นาทีแล้ว")
+    else:
+        messagebox.showinfo("ตั้งเวลาปิดเครื่อง", f"ตั้งเวลาปิดเครื่องใน {hour} ชั่วโมง {minute} นาทีแล้ว")
         
 def abortShutdownTimer():
-    os.system("shutdown -a")
-    messagebox.showinfo("ยกเลิก", "ยกเลิกการปิดเครื่องเสร็จสิ้น")
-
-def showMessage():
-    hour = int(hours.get())
-    minute = int(minutes.get())
-    print(hour, minute)
+    code: bool = abortShutdown()
+    if not code:
+        messagebox.showwarning("ไม่พบการตั้งเวลาปิดเครื่อง", "ไม่พบการตั้งเวลาปิดเครื่องก่อนหน้า\nไม่สามารถยกเลิกได้")
+    else:
+        messagebox.showinfo("ยกเลิก", "ยกเลิกการปิดเครื่องเสร็จสิ้น")
 
 #Text Box
 hours = tk.StringVar(value=0)
@@ -65,7 +79,7 @@ minutes = tk.IntVar(value=0)
 hourBox = ttk.Spinbox(textvariable=hours, increment=1, from_=0, to=10)
 hourBox.place(x=20, y=win_height - 120, width=40)
 
-minuteBox = ttk.Spinbox(textvariable=minutes, increment=10, from_=1, to=60)
+minuteBox = ttk.Spinbox(textvariable=minutes, increment=10, from_=0, to=60)
 minuteBox.place(x=110, y=win_height - 120, width=40)
 
 #Label
