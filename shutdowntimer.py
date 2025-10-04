@@ -35,8 +35,10 @@ def abortShutdown() -> bool:
     code: int = os.system("shutdown -a")
     if code != 0:
         return False
-    
     return True
+
+def confirmOverideShutdownTimer() -> bool:
+    return messagebox.askyesno("การตั้งเวลาปิดเครื่องทับซ้อน", "ตรวจพบว่ามีการตั้งเวลาปิดเครื่องอยู่แล้ว\nต้องการยกเลิกของเก่าและตั้งค่าใหม่หรือไม่?")
 
 def shutdownTimerInfo(hour: int = 0, minute: int = 0, second: int = 0):
     while(minute >= 60):
@@ -56,7 +58,7 @@ def setShutdownTimer(hour: int, minute: int):
         if confirm:
             rc: int = shutdown(10)
             if rc != 0:
-                answer = messagebox.askyesno("การตั้งเวลาปิดเครื่องทับซ้อน", "ตรวจพบว่ามีการตั้งเวลาปิดเครื่องอยู่แล้ว\nต้องการยกเลิกของเก่าและตั้งค่าใหม่หรือไม่?")
+                answer = confirmOverideShutdownTimer()
                 if not answer:
                     return
                 abortShutdown()
@@ -67,7 +69,7 @@ def setShutdownTimer(hour: int, minute: int):
     if second > 0:
         rc: int = shutdown(second)
         if rc != 0:
-            answer = messagebox.askyesno("การตั้งเวลาปิดเครื่องทับซ้อน", "ตรวจพบว่ามีการตั้งเวลาปิดเครื่องอยู่แล้ว\nต้องการยกเลิกของเก่าและตั้งค่าใหม่หรือไม่?")
+            answer = confirmOverideShutdownTimer()
             if not answer:
                 return
             abortShutdown()
