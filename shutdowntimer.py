@@ -3,23 +3,6 @@ from tkinter import ttk
 from tkinter import messagebox
 import os
 
-main = tk.Tk()
-main.configure(bg="#a6edff")
-main_frame = tk.Frame(main, bg="#a6edff")
-main_frame.pack(fill="both", expand=True)
-
-#Window configuration
-win_width = 200
-win_height = 200
-
-#Screen resolution
-screen_width = main.winfo_screenwidth()
-screen_height = main.winfo_screenheight()
-
-#Center position of window
-x = (screen_width // 2) - (win_width // 2)
-y = (screen_height // 2) - (win_height // 2)
-
 def validate_hour(value):
     return value == "" or (value.isdigit() and 0 <= int(value) <= 23)
 
@@ -83,40 +66,61 @@ def abortShutdownTimer():
     else:
         messagebox.showinfo("ยกเลิก", "ยกเลิกการปิดเครื่องเสร็จสิ้น")
 
-#Text Box
-hours = tk.StringVar(value=0)
-minutes = tk.IntVar(value=0)
+def main():
+    main = tk.Tk()
+    main.configure(bg="#78e8ff")
+    main_frame = tk.Frame(main, bg="#78e8ff", relief="sunken")
+    main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-vcmd_hour = (main.register(validate_hour), '%P')
-vcmd_minute = (main.register(validate_minute), '%P')
+    #Window configuration
+    win_width = 250
+    win_height = 220
 
-hourBox = ttk.Spinbox(main,
-                      textvariable=hours,
-                      increment=1,
-                      from_=0, to=10,
-                      validate='key',
-                      validatecommand=vcmd_hour
-                      )
-hourBox.place(x=20, y=win_height - 120, width=40)
+    #Screen resolution
+    screen_width = main.winfo_screenwidth()
+    screen_height = main.winfo_screenheight()
 
-minuteBox = ttk.Spinbox(main,
-                        textvariable=minutes,
-                        increment=5, 
-                        from_=0, to=120,
+    #Center position of window
+    x = (screen_width // 2) - (win_width // 2)
+    y = (screen_height // 2) - (win_height // 2)
+    
+    #Text Box
+    hours = tk.StringVar(value=0)
+    minutes = tk.IntVar(value=0)
+
+    vcmd_hour = (main.register(validate_hour), '%P')
+    vcmd_minute = (main.register(validate_minute), '%P')
+
+    hourBox = ttk.Spinbox(main_frame,
+                        textvariable=hours,
+                        increment=1,
+                        from_=0, to=10,
                         validate='key',
-                        validatecommand=vcmd_minute
+                        validatecommand=vcmd_hour
                         )
-minuteBox.place(x=110, y=win_height - 120, width=40)
+    hourBox.place(x=20, y=win_height - 150, width=40)
 
-#Label
-shutdownTimerLabel = tk.Label(main, text="Shutdown Timer", bg="#a6edff", fg="Black", font=10).place(x=40, y=20)
-hourLabel = tk.Label(main, text="ชั่วโมง", bg="#a6edff", fg="Black", font=10).place(x=60, y=win_height - 120)
-minuteLabel = tk.Label(main, text="นาที", bg="#a6edff", fg="Black",font=10).place(x=150, y=win_height - 120)
+    minuteBox = ttk.Spinbox(main_frame,
+                            textvariable=minutes,
+                            increment=5, 
+                            from_=0, to=120,
+                            validate='key',
+                            validatecommand=vcmd_minute
+                            )
+    minuteBox.place(x=110, y=win_height - 150, width=40)
 
-#Button
-shutdownTimerButton = tk.Button(main, text="ตั้งเวลาปิดเครื่อง",bg="#96ffb6", command=lambda: setShutdownTimer(int(hours.get()), int(minutes.get()))).place(x=10, y=win_height - 60)
-abortShutdownButton  = tk.Button(main, text="ยกเลิกปิดเครื่อง", bg="#ff8593", command=abortShutdownTimer).place(x=190, y=win_height - 60, anchor="ne")
+    #Label
+    shutdownTimerLabel = tk.Label(main_frame, text="Shutdown Timer", fg="Black", bg="#78e8ff", font=10).place(x=40, y=20)
+    hourLabel = tk.Label(main_frame, text="ชั่วโมง", fg="Black", bg="#78e8ff", font=10).place(x=60, y=win_height - 150)
+    minuteLabel = tk.Label(main_frame, text="นาที", fg="Black", bg="#78e8ff",font=10).place(x=150, y=win_height - 150)
 
-main.title("Shutdown Timer")
-main.geometry(f"{win_width}x{win_height}+{x}+{y}")
-main.mainloop()
+    #Button
+    shutdownTimerButton = tk.Button(main_frame, text="ตั้งเวลาปิดเครื่อง",bg="#96ffb6", command=lambda: setShutdownTimer(int(hours.get()), int(minutes.get()))).place(x=10, y=win_height - 100)
+    abortShutdownButton  = tk.Button(main_frame, text="ยกเลิกปิดเครื่อง", bg="#ff8593", command=abortShutdownTimer).place(x=190, y=win_height - 100, anchor="ne")
+
+    main.title("Shutdown Timer")
+    main.geometry(f"{win_width}x{win_height}+{x}+{y}")
+    main.mainloop()
+    
+if __name__ == "__main__":
+    main()
