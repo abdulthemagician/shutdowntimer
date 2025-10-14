@@ -23,16 +23,16 @@ def shutdown(second: int) -> int:
     except Exception:
         return -1
     
-def abortShutdown() -> bool:
+def abortShutdown() -> int:
     try:
-        subprocess.Popen(
+        process = subprocess.run(
             "shutdown -a",
             shell=True,
             creationflags=subprocess.CREATE_NO_WINDOW
         )
-        return True
+        return process.returncode
     except Exception:
-        return False
+        return -1
 
 def confirmOverideShutdownTimer() -> bool:
     return messagebox.askyesno("การตั้งเวลาปิดเครื่องทับซ้อน", "ตรวจพบว่ามีการตั้งเวลาปิดเครื่องอยู่แล้ว\nต้องการยกเลิกของเก่าและตั้งค่าใหม่หรือไม่?")
@@ -74,12 +74,16 @@ def setShutdownTimer(hour: int, minute: int):
         shutdownTimerInfo(hour, minute, second)
         
 def abortShutdownTimer():
-    code: bool = abortShutdown()
-    if not code:
-        messagebox.showwarning("ไม่พบการตั้งเวลาปิดเครื่อง", "ไม่พบการตั้งเวลาปิดเครื่องก่อนหน้า\nไม่สามารถยกเลิกได้")
-    else:
+    code: int = abortShutdown()
+    if code == 0:
         messagebox.showinfo("ยกเลิก", "ยกเลิกการปิดเครื่องเสร็จสิ้น")
-
+    elif code == 1116:
+        messagebox.showwarning("ไม่มีการตั้งเวลาปิดเครื่อง", "ไม่มีการตั้งเวลาปิดเครื่องอยู่ก่อนหน้า")
+    elif code == -1:
+        messagebox.showerror("ข้อผิดพลาด", "ไม่สามารถเรียกคำสั่ง shutdown -a ได้")
+    else:
+        messagebox.showerror("ไม่ทราบสาเหตุ", f"เกิดข้อผิดพลาดไม่ทราบสาเหตุ (code: {code})")
+        
 def main():
     main = tk.Tk()
     main.configure(bg="#78e8ff")
