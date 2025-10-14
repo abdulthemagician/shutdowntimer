@@ -1,0 +1,6 @@
+.env/
+.vscode/
+app.ico
+build/
+dist/
+shutdowntimer.spec

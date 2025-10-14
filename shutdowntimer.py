@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 import os
+import subprocess
 
 def validate_hour(value):
     return value == "" or (value.isdigit() and 0 <= int(value) <= 23)
@@ -12,13 +13,26 @@ def validate_minute(value):
 def shutdown(second: int) -> int:
     if second < 0:
         return -1
-    return os.system(f"shutdown -s -t {second}")
+    try:
+        subprocess.Popen(
+            f"shutdown -s -t {second}",
+            shell=True,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
+        return 0
+    except Exception:
+        return -1
     
 def abortShutdown() -> bool:
-    code: int = os.system("shutdown -a")
-    if code != 0:
+    try:
+        subprocess.Popen(
+            "shutdown -a",
+            shell=True,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
+        return True
+    except Exception:
         return False
-    return True
 
 def confirmOverideShutdownTimer() -> bool:
     return messagebox.askyesno("การตั้งเวลาปิดเครื่องทับซ้อน", "ตรวจพบว่ามีการตั้งเวลาปิดเครื่องอยู่แล้ว\nต้องการยกเลิกของเก่าและตั้งค่าใหม่หรือไม่?")
