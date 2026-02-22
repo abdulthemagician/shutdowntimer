@@ -1,8 +1,7 @@
 .env/
 .vscode/
-app.ico
+/app.ico
 build/
 dist/
 shutdowntimer.spec
-main.spec
 __pycache__/

@@ -29,7 +29,6 @@ jobs:
         run: |
           Write-Host "Checking required files..."
           Get-ChildItem -Recurse icons/
-          Get-Content main.spec
 
       - name: Build executable
         run: pyinstaller main.spec --noconfirm
