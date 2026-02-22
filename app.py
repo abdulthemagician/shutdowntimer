@@ -12,6 +12,8 @@ Features:
 
 from __future__ import annotations
 
+import os
+import sys
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -56,6 +58,9 @@ class ShutdownTimerApp:
         self.root.title("Shutdown Timer")
         self.root.resizable(False, False)
 
+        # Set window icon
+        self._set_icon()
+
         # State
         self._remaining: int = 0        # seconds left (local tracker)
         self._timer_active: bool = False
@@ -70,6 +75,18 @@ class ShutdownTimerApp:
         self._center_window()
         self._build_ui()
         self._restore_timer()
+
+    # ── Window icon ────────────────────────────────────────────────
+
+    def _set_icon(self) -> None:
+        """Set the window/taskbar icon from icons/app.ico."""
+        if getattr(sys, "frozen", False):
+            base = sys._MEIPASS  # type: ignore[attr-defined]
+        else:
+            base = os.path.dirname(os.path.abspath(__file__))
+        ico_path = os.path.join(base, "icons", "app.ico")
+        if os.path.isfile(ico_path):
+            self.root.iconbitmap(ico_path)
 
     # ── Window position ──────────────────────────────────────────────
 
