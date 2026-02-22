@@ -18,9 +18,12 @@ from tkinter import ttk, messagebox
 from core import (
     ShutdownResult,
     cancel_shutdown,
+    clear_timer_state,
     force_reschedule,
     format_duration,
     hms_to_seconds,
+    load_timer_state,
+    save_timer_state,
     schedule_shutdown,
     seconds_to_hms,
 )
@@ -66,6 +69,7 @@ class ShutdownTimerApp:
         apply_theme(self.root)
         self._center_window()
         self._build_ui()
+        self._restore_timer()
 
     # ── Window position ──────────────────────────────────────────────
 
@@ -227,7 +231,9 @@ class ShutdownTimerApp:
 
     # ── Countdown logic ──────────────────────────────────────────────
 
-    def _start_countdown(self, total_seconds: int) -> None:
+    def _start_countdown(self, total_seconds: int, *, save: bool = True) -> None:
+        if save:
+            save_timer_state(total_seconds)
         self._remaining = total_seconds
         self._timer_active = True
         self._update_countdown_display()
@@ -235,6 +241,7 @@ class ShutdownTimerApp:
         self._tick()
 
     def _stop_countdown(self) -> None:
+        clear_timer_state()
         self._timer_active = False
         self._remaining = 0
         if self._tick_id is not None:
@@ -242,6 +249,12 @@ class ShutdownTimerApp:
             self._tick_id = None
         self._update_countdown_display()
         self._update_status()
+
+    def _restore_timer(self) -> None:
+        """Resume countdown from saved state if a timer is still active."""
+        remaining = load_timer_state()
+        if remaining is not None and remaining > 0:
+            self._start_countdown(remaining, save=False)
 
     def _tick(self) -> None:
         if not self._timer_active:

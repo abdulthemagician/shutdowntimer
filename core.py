@@ -8,9 +8,17 @@ Every function returns a result that the GUI layer interprets.
 
 from __future__ import annotations
 
+import json
 import subprocess
+import time
 from dataclasses import dataclass
 from enum import Enum, auto
+from pathlib import Path
+
+
+# ── State file path (next to the executable / script) ────────────────────
+
+_STATE_FILE = Path(__file__).resolve().parent / ".shutdown_state.json"
 
 
 # ── Result types ─────────────────────────────────────────────────────────
@@ -112,3 +120,42 @@ def format_duration(total_seconds: int) -> str:
     if s > 0 and h == 0:
         parts.append(f"{s} วินาที")
     return " ".join(parts) if parts else "0 วินาที"
+
+
+# ── Timer state persistence ──────────────────────────────────────────────
+
+def save_timer_state(seconds: int) -> None:
+    """Save the shutdown target timestamp to a JSON file."""
+    target = time.time() + seconds
+    data = {"target_timestamp": target}
+    try:
+        _STATE_FILE.write_text(json.dumps(data), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def load_timer_state() -> int | None:
+    """Load saved state and return remaining seconds, or None if no valid state."""
+    try:
+        if not _STATE_FILE.exists():
+            return None
+        data = json.loads(_STATE_FILE.read_text(encoding="utf-8"))
+        target = data.get("target_timestamp")
+        if target is None:
+            return None
+        remaining = int(target - time.time())
+        if remaining <= 0:
+            clear_timer_state()
+            return None
+        return remaining
+    except (OSError, json.JSONDecodeError, TypeError):
+        clear_timer_state()
+        return None
+
+
+def clear_timer_state() -> None:
+    """Delete the saved timer state file."""
+    try:
+        _STATE_FILE.unlink(missing_ok=True)
+    except OSError:
+        pass
