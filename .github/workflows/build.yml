@@ -10,10 +10,14 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -39,3 +43,43 @@ jobs:
           name: ShutdownTimer-Windows
           path: dist/main.exe
           retention-days: 30
+
+      - name: Get latest tag and bump patch version
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: version
+        shell: pwsh
+        run: |
+          $latestTag = git describe --tags --abbrev=0 2>$null
+          if ($LASTEXITCODE -ne 0 -or !$latestTag) {
+            $newVersion = "v1.0.0"
+          } else {
+            $latestTag = $latestTag.Trim()
+            if ($latestTag -match '^v?(\d+)\.(\d+)\.(\d+)$') {
+              $major = [int]$Matches[1]
+              $minor = [int]$Matches[2]
+              $patch = [int]$Matches[3] + 1
+              $newVersion = "v$major.$minor.$patch"
+            } else {
+              $newVersion = "v1.0.0"
+            }
+          }
+          Write-Host "Latest tag: $latestTag"
+          Write-Host "New version: $newVersion"
+          echo "new_version=$newVersion" >> $env:GITHUB_OUTPUT
+
+      - name: Rename executable with version
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          $version = "${{ steps.version.outputs.new_version }}"
+          Rename-Item -Path "dist/main.exe" -NewName "ShutdownTimer-$version.exe"
+
+      - name: Create tag and release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.new_version }}
+          name: ${{ steps.version.outputs.new_version }}
+          files: dist/ShutdownTimer-*.exe
+          generate_release_notes: true
+          draft: false
+          prerelease: false
